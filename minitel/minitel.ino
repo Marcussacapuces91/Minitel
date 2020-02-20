@@ -62,7 +62,7 @@ public:
  */
   char* CUP(const byte row, const byte col) const {
     static char s[10];
-    sprintf_P(s, PSTR(CSI"%c;%cH"), '0'+row, '0'+col);
+    sprintf_P(s, PSTR(CSI"%i;%iH"), row, col);
     return s;
   }
 
@@ -91,41 +91,31 @@ public:
   }
 
   void setup() {
+    static const char* lab[] PROGMEM = {
+      " _         _     _  ___  _ _",
+      "| |       | |   ( )/ _ \\| | |",
+      "| |   __ _| |__ |// /_\\ \\ | | ___ _ __",
+      "| |  / _` | '_ \\  |  _  | | |/ _ \\ '_ \\",
+      "| |_| (_| | |_) | | | | | | |  __/ | | |",
+      "\\___/\\__,_|_.__/  |_| |_|_|_|\\___|_| |_|"
+    };
+    
     Serial1.begin(1200, SERIAL_7E1); // TX only on GPIO2 = D4
     swSer.begin(1200, SWSERIAL_7E1, D5, false); // RX only on GPIO14 = D5
     while (!Serial1 || !swSer) yield();
     reset();
     Serial1.println( F("Copyright (c) 2020 par Marc SIBERT") );
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println(F(" _         _     _  ___  _ _"));
-    Serial1.println(F("| |       | |   ( )/ _ \\| | |"));
-    Serial1.println(F("| |   __ _| |__ |// /_\\ \\ | | ___ _ __"));
-    Serial1.println(F("| |  / _` | '_ \\  |  _  | | |/ _ \\ '_ \\"));
-    Serial1.print  (F("| |_| (_| | |_) | | | | | | |  __/ | | |"));
-    Serial1.print  (F("\\___/\\__,_|_.__/  |_| |_|_|_|\\___|_| |_|"));
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println( );
-    Serial1.println( );
+
+    for (byte i = 0; i < 6; ++i) {
+      Serial1.print(CUP(3+i, 1));
+      Serial1.print(lab[i]);
+    }
+
+    Serial1.print(CUP(22,1));
     Serial1.println(F("      ... zzzZZ "));
     Serial1.println(F("     (- -)      "));
-    Serial1.println(F("`ooO``(_)``Ooo``````````````````````````"));
+    Serial1.print  (F("`ooO``(_)``Ooo``````````````````````````"));
 
-
-
-
-                                                                                                                                  
-                                                                                        
-    
   }
 
 private:
@@ -137,10 +127,9 @@ Minitel minitel;
 void setup() {
 	Serial.begin(115200);
   while (!Serial) yield();
+  Serial.println("\nSoftware serial test started");
+
   minitel.setup();
-
-	Serial.println("\nSoftware serial test started");
-
 }
 
 void loop() {
