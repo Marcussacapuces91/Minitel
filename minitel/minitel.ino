@@ -31,6 +31,10 @@
 #define LF "\x0A"
 #define CR "\x0D"
 #define CSI ESC"\x5B"
+// Home
+#define RS "\x1E"
+// Clear Screen + Home
+#define FF "\x0C"
 
 class Minitel {
 public:  
@@ -50,8 +54,9 @@ public:
   
   void reset() {
     Serial1.print( F(PRO1"\x7b") );
-    Serial1.print( CUP(1,1) );
-    Serial1.print( ED() );
+    Serial1.print( FF );
+//    Serial1.print( CUP(1,1) );
+//    Serial1.print( ED() );
   }
 
 /**
@@ -76,7 +81,8 @@ public:
  */
   char* ED(const byte ps = 0) const {
     static char s[5];
-    sprintf_P(s, PSTR(CSI"%cJ"), '0'+ps);
+    if (ps) sprintf_P(s, PSTR(CSI"%cJ"), '0'+ps);
+    else strcpy_P(s, PSTR(CSI"J"));
     return s;
   }
 
