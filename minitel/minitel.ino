@@ -14,119 +14,9 @@
    limitations under the License.
 */
 
-#include <SoftwareSerial.h>
-#include "laballen.h"
-
-#define D0 (16)
-#define D5 (14)
-#define D6 (12)
-#define D7 (13)
-#define D8 (15)
-
-#define ESC "\x1B"
-#define PRO1 ESC"\x39"
-#define BEL "\x07"
-#define BS "\x08"
-#define HT "\x09"
-#define LF "\x0A"
-#define CR "\x0D"
-#define CSI ESC"\x5B"
-// Home
-#define RS "\x1E"
-// Clear Screen + Home
-#define FF "\x0C"
-
-class Minitel {
-public:  
-  void loop() {
-//    swSer.perform_work();
-    
-    while (swSer.available() > 0) {
-      Serial.write(swSer.read());
-      yield();
-    }
-    while (Serial.available() > 0) {
-      Serial1.write(Serial.read());
-      yield();
-    }
-  
-  }
-  
-  void reset() {
-    Serial1.print( F(PRO1"\x7b") );
-    Serial1.print( FF );
-//    Serial1.print( CUP(1,1) );
-//    Serial1.print( ED() );
-  }
-
-/**
- * Retourne une chaîne de caratères qui place le curseur en row, col.
- * @param row ligne entre 1 et 25.
- * @param col colonne entre 1 et 40 ou 80 selon le mode.
- * @return un pointeur vers une chaine de caractères.
- */
-  char* CUP(const byte row, const byte col) const {
-    static char s[10];
-    sprintf_P(s, PSTR(CSI"%i;%iH"), row, col);
-    return s;
-  }
-
-/**
- * Retourne une chaîne de caratère qui efface l'écran .
- * @param ps : 
- *    0 : Effacement depuis la position jusqu'à la fin de la page (par défaut) ;
- *    1 : Effacement depuis le début de la page jusqu'à la position du curseur incluse ;
- *    2 : Effacement complet de la page sans modification de la position du curseur.
- * @return une référence sur la chaine de caractères.
- */
-  char* ED(const byte ps = 0) const {
-    static char s[5];
-    if (ps) sprintf_P(s, PSTR(CSI"%cJ"), '0'+ps);
-    else strcpy_P(s, PSTR(CSI"J"));
-    return s;
-  }
-
-  String& imagePBM(const unsigned& aSize, const char* aFile) const {
-    static String s;
-    const char *p = aFile;
-    if (!strncmp(p, "P5", 2)) {
-      return s = String( F("Fichier inattendu !") );
-    }
-    p += '\x1A';
-            
-  }
-
-  void setup() {
-    static const char* lab[] PROGMEM = {
-      " _         _     _  ___  _ _",
-      "| |       | |   ( )/ _ \\| | |",
-      "| |   __ _| |__ |// /_\\ \\ | | ___ _ __",
-      "| |  / _` | '_ \\  |  _  | | |/ _ \\ '_ \\",
-      "| |_| (_| | |_) | | | | | | |  __/ | | |",
-      "\\___/\\__,_|_.__/  |_| |_|_|_|\\___|_| |_|"
-    };
-    
-    Serial1.begin(1200, SERIAL_7E1); // TX only on GPIO2 = D4
-    swSer.begin(1200, SWSERIAL_7E1, D5, false); // RX only on GPIO14 = D5
-    while (!Serial1 || !swSer) yield();
-    reset();
-    Serial1.println( F("Copyright (c) 2020 par Marc SIBERT") );
-
-    for (byte i = 0; i < 6; ++i) {
-      Serial1.print(CUP(3+i, 1));
-      Serial1.print(lab[i]);
-    }
-
-    Serial1.print(CUP(22,1));
-    Serial1.println(F("      ... zzzZZ "));
-    Serial1.println(F("     (- -)      "));
-    Serial1.print  (F("`ooO``(_)``Ooo``````````````````````````"));
-
-  }
-
-private:
-  SoftwareSerial swSer;
-};
+#include "secrets.h"
+#include <ESP8266WiFi.h>
+#include "minitel.h"
 
 Minitel minitel;
 
@@ -135,6 +25,11 @@ void setup() {
   while (!Serial) yield();
   Serial.println("\nSoftware serial test started");
 
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print('.');
+  }
   minitel.setup();
 }
 
